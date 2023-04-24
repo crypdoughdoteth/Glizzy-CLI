@@ -6,7 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-env_logger = "0.10.0"
 dotenv = "0.15.0"
 ethers = { version = "1.0.2", features = ["ws", "rustls"] }
 anyhow = "1.0"
