@@ -4,16 +4,17 @@ use ethers::{
     providers::{Http, Middleware, Provider},
     types::Address,
 };
-use slack_morphism::prelude::*;
+use slack_morphism::{
+    prelude::{SlackApiChatPostMessageRequest, SlackClientHyperConnector},
+    SlackApiToken, SlackApiTokenValue, SlackClient, SlackMessageContent,
+};
 use std::time::Duration;
 use tokio::time::sleep;
 
 async fn get_bal() -> Result<u64> {
     let api_key = std::env::var("API_KEY")?;
-
     let provider = Provider::<Http>::try_from(api_key)?;
     let addy = "0x3a7c5f2c6C3F38A632007FE4f7e6b8676Fdc1F89".parse::<Address>()?;
-
     Ok(provider.get_balance(addy, None).await?.as_u64())
 }
 
@@ -40,7 +41,7 @@ async fn main() -> Result<()> {
                 } else {
                     println!("Balance is Sufficient");
                 }
-                sleep(Duration::from_secs(60)).await;
+                sleep(Duration::from_secs(600)).await;
             }
             Err(e) => return Err(e),
         }
