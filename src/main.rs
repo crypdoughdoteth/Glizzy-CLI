@@ -29,7 +29,7 @@ async fn main() -> Result<()> {
                 if x <= threshhold {
                     let client = SlackClient::new(SlackClientHyperConnector::new());
                     let token_value: SlackApiTokenValue = slack_morphism::SlackApiTokenValue(
-                        std::env::var("SLACK_BOT_TOKEN").unwrap(),
+                        std::env::var("SLACK_BOT_TOKEN")?,
                     );
                     let token: SlackApiToken = SlackApiToken::new(token_value);
                     let session = client.open_session(&token);
