@@ -11,10 +11,10 @@ use slack_morphism::{
 use std::time::Duration;
 use tokio::time::sleep;
 
-async fn get_bal() -> Result<u64> {
+async fn get_bal(addy: &str) -> Result<u64> {
     let api_key = std::env::var("API_KEY")?;
     let provider = Provider::<Http>::try_from(api_key)?;
-    let addy = "0x3a7c5f2c6C3F38A632007FE4f7e6b8676Fdc1F89".parse::<Address>()?;
+    let addy = addy.parse::<Address>()?;
     Ok(provider.get_balance(addy, None).await?.as_u64())
 }
 
@@ -22,8 +22,9 @@ async fn get_bal() -> Result<u64> {
 async fn main() -> Result<()> {
     dotenv().ok();
     let threshhold: u64 = 1;
+    let address = std::env::var("ADDRESS")?;
     loop {
-        match get_bal().await {
+        match get_bal(&address).await {
             Ok(x) => {
                 if x <= threshhold {
                     let client = SlackClient::new(SlackClientHyperConnector::new());
