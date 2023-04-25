@@ -10,7 +10,7 @@ license = "MIT/Apache-2.0"
 
 [dependencies]
 dotenv = "0.15.0"
-ethers = { version = "1.0.2", features = ["ws", "rustls"] }
+ethers = { version = "1.0.2", features = ["rustls"] }
 anyhow = "1.0"
 tokio = { version = "1", features = ["full"] }
 slack-morphism = { version = "1.10", features = ["hyper", "axum"] }
