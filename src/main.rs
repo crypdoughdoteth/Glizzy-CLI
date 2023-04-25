@@ -21,7 +21,7 @@ async fn get_bal(addy: &str) -> Result<u64> {
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenv().ok();
-    let threshhold: u64 = 1;
+    let threshhold: u64 = 300;
     let address = std::env::var("ADDRESS")?;
     loop {
         match get_bal(&address).await {
@@ -35,14 +35,14 @@ async fn main() -> Result<()> {
                     let session = client.open_session(&token);
                     let post_chat_req = SlackApiChatPostMessageRequest::new(
                         "#general".into(),
-                        SlackMessageContent::new().with_text("Balance is running low".into()),
+                        SlackMessageContent::new().with_text(format!("Your balance at {} is running low: {}!", &address, x)),
                     );
                     let post_chat_resp = session.chat_post_message(&post_chat_req).await?;
                     println!("{:?}", post_chat_resp);
                 } else {
                     println!("Balance is Sufficient");
                 }
-                sleep(Duration::from_secs(600)).await;
+                sleep(Duration::from_secs(900)).await;
             }
             Err(e) => return Err(e),
         }
