@@ -1,14 +1,15 @@
 use anyhow::Result;
+use clap::Parser;
 use dotenv::dotenv;
 use ethers::{
     providers::{Http, Middleware, Provider},
-    types::{Address, U256}
+    types::{Address, U256},
 };
 use slack_morphism::{
     prelude::{SlackApiChatPostMessageRequest, SlackClientHyperConnector},
     SlackApiToken, SlackApiTokenValue, SlackClient, SlackMessageContent,
 };
-use std::{time::Duration};
+use std::time::Duration;
 use tokio::time::sleep;
 
 async fn get_bal(addy: &str) -> Result<U256> {
@@ -18,25 +19,22 @@ async fn get_bal(addy: &str) -> Result<U256> {
     Ok(provider.get_balance(addy, None).await?)
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    dotenv().ok();
-    let threshhold = 300000000000000000000u128;
-    println!("{}", &threshhold);
-    let address = std::env::var("ADDRESS")?;
+async fn monitor(channel: String, threshhold: u128, address: String) -> Result<()> {
     loop {
         match get_bal(&address).await {
             Ok(x) => {
                 if x <= threshhold.into() {
                     let client = SlackClient::new(SlackClientHyperConnector::new());
-                    let token_value: SlackApiTokenValue = slack_morphism::SlackApiTokenValue(
-                        std::env::var("SLACK_BOT_TOKEN")?,
-                    );
+                    let token_value: SlackApiTokenValue =
+                        slack_morphism::SlackApiTokenValue(std::env::var("SLACK_BOT_TOKEN")?);
                     let token: SlackApiToken = SlackApiToken::new(token_value);
                     let session = client.open_session(&token);
                     let post_chat_req = SlackApiChatPostMessageRequest::new(
-                        "#general".into(),
-                        SlackMessageContent::new().with_text(format!("Your balance at {} is running low: {}!", &address, &x)),
+                        channel.to_owned().into(),
+                        SlackMessageContent::new().with_text(format!(
+                            "Your balance at {} is running low: {}!",
+                            &address, &x
+                        )),
                     );
                     let post_chat_resp = session.chat_post_message(&post_chat_req).await?;
                     println!("{:?}", post_chat_resp);
@@ -48,4 +46,31 @@ async fn main() -> Result<()> {
             Err(e) => return Err(e),
         }
     }
+}
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Cli {
+    /// Address of the account you want to monitor
+    #[arg(short, long)]
+    address: String,
+    /// Chat room for slack bot to post in
+    #[arg(short, long)]
+    chat: Option<String>,
+    /// Threshhold for when bot will notify chat
+    #[arg(short, long)]
+    threshhold: Option<u128>,
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    dotenv()?;
+    let cli = Cli::parse();
+    monitor(
+        format!("#{}", cli.chat.unwrap_or("general".to_owned())),
+        cli.threshhold.unwrap_or(300000000000000000000u128),
+        cli.address,
+    )
+    .await?;
+    Ok(())
 }
