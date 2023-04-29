@@ -13,16 +13,20 @@ Monitors the Cryptoon Goonz relayer and notifies slack when the balance of the E
 
 ### 2. Create .env file with the following keys:
 
-`API_KEY`, `SLACK_BOT_TOKEN`, `ADDRESS`
+`API_KEY`, `SLACK_BOT_TOKEN`
 
 API_KEY's corresponding value is your JSON-RPC provider's API key to connect to Ethereum,
 
 SLACK_BOT_TOKEN is for the required access token from Slack,
 
-ADDRESS is the Ethereum address of the account you want to monitor.
-
 ### 3. Build it & run
-Ensure that you are in the crate's root directory & in your terminal type `cargo run --release`
+Ensure that you are in the crate's root directory & in your terminal type `cargo install --path <PATH-TO-FOLDER>`
 
+### 4. Use CLI
 
+`goonz_monitor --address <ADDRESS>`
+
+Optional args include: "threshhold" (in wei) & "chat" (slack channel) 
+
+For more help use `goonz_monitor --help`
 
