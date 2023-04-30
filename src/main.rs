@@ -3,7 +3,8 @@ use clap::Parser;
 use dotenv::dotenv;
 use ethers::{
     providers::{Http, Middleware, Provider},
-    types::{Address, U256}, utils::parse_ether,
+    types::{H160, U256},
+    utils::parse_ether,
 };
 use slack_morphism::{
     prelude::{SlackApiChatPostMessageRequest, SlackClientHyperConnector},
@@ -12,34 +13,39 @@ use slack_morphism::{
 use std::time::Duration;
 use tokio::time::sleep;
 
-async fn get_bal(addy: &str) -> Result<U256> {
+async fn get_bal(addy: &Vec<String>) -> Result<Vec<U256>> {
+    let mut res: Vec<U256> = Vec::new();
     let api_key = std::env::var("API_KEY")?;
     let provider = Provider::<Http>::try_from(api_key)?;
-    let addy = addy.parse::<Address>()?;
-    Ok(provider.get_balance(addy, None).await?)
+    for i in addy.into_iter() {
+        res.push(provider.get_balance(i.parse::<H160>()?, None).await?)
+    }
+    Ok(res)
 }
 
-async fn monitor(channel: String, threshhold: U256, address: String) -> Result<()> {
+async fn monitor(channel: String, threshhold: U256, address: Vec<String>) -> Result<()> {
     loop {
         match get_bal(&address).await {
-            Ok(x) => {
-                if x <= threshhold {
-                    let client = SlackClient::new(SlackClientHyperConnector::new());
-                    let token_value: SlackApiTokenValue =
-                        slack_morphism::SlackApiTokenValue(std::env::var("SLACK_BOT_TOKEN")?);
-                    let token: SlackApiToken = SlackApiToken::new(token_value);
-                    let session = client.open_session(&token);
-                    let post_chat_req = SlackApiChatPostMessageRequest::new(
-                        channel.to_owned().into(),
-                        SlackMessageContent::new().with_text(format!(
-                            "Your balance at {} is running low: {}!",
-                            &address, &x
-                        )),
-                    );
-                    let post_chat_resp = session.chat_post_message(&post_chat_req).await?;
-                    println!("{:?}", post_chat_resp);
-                } else {
-                    println!("Balance is Sufficient: {}", x);
+            Ok(balances) => {
+                for i in balances.iter() {
+                    if *i <= threshhold {
+                        let client = SlackClient::new(SlackClientHyperConnector::new());
+                        let token_value: SlackApiTokenValue =
+                            slack_morphism::SlackApiTokenValue(std::env::var("SLACK_BOT_TOKEN")?);
+                        let token: SlackApiToken = SlackApiToken::new(token_value);
+                        let session = client.open_session(&token);
+                        let post_chat_req = SlackApiChatPostMessageRequest::new(
+                            channel.to_owned().into(),
+                            SlackMessageContent::new().with_text(format!(
+                                "Your balance at {:?} is running low: {}!\n",
+                                &address, i
+                            )),
+                        );
+                        let post_chat_resp = session.chat_post_message(&post_chat_req).await?;
+                        println!("{:?}\n", post_chat_resp);
+                    } else {
+                        println!("Balance is Sufficient at {:?}: {}\n", &address, i);
+                    }
                 }
                 sleep(Duration::from_secs(900)).await;
             }
@@ -48,14 +54,12 @@ async fn monitor(channel: String, threshhold: U256, address: String) -> Result<(
     }
 }
 
-
-
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Cli {
     /// Address of the account you want to monitor
     #[arg(short, long)]
-    address: String,
+    address: Vec<String>,
     /// Chat room for slack bot to post in
     #[arg(short, long)]
     chat: Option<String>,
