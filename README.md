@@ -26,7 +26,7 @@ Ensure that you are in the crate's root directory & in your terminal type `cargo
 
 `goonz_monitor --address <ADDRESS>`
 
-Optional args include: "threshhold" (in wei) & "chat" (slack channel) 
+Optional args include: "threshhold" & "chat" (slack channel) 
 
 For more help use `goonz_monitor --help`
 
