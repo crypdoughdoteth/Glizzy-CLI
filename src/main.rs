@@ -29,7 +29,7 @@ async fn monitor(channel: String, threshhold: U256, address: Vec<String>) -> Res
         slack_morphism::SlackApiTokenValue(std::env::var("SLACK_BOT_TOKEN")?);
     let token: SlackApiToken = SlackApiToken::new(token_value);
     let session = client.open_session(&token);
-    let mut j: usize = 0; 
+    let mut j: usize = 0;
     loop {
         match get_bal(&address).await {
             Ok(balances) => {
@@ -43,11 +43,11 @@ async fn monitor(channel: String, threshhold: U256, address: Vec<String>) -> Res
                             )),
                         );
                         let post_chat_resp = session.chat_post_message(&post_chat_req).await?;
-                        j += 1;
                         println!("{:?}\n", post_chat_resp);
                     } else {
                         println!("Balance is Sufficient at {:?}: {}\n", &address[j], i);
                     }
+                    j += 1;
                 }
                 sleep(Duration::from_secs(900)).await;
             }
