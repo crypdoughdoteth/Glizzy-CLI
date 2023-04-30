@@ -59,7 +59,7 @@ struct Cli {
     /// Chat room for slack bot to post in
     #[arg(short, long)]
     chat: Option<String>,
-    /// Threshhold (in WEI) for when bot will notify chat
+    /// Threshhold (in Ether) for when bot will notify chat
     #[arg(short, long)]
     threshhold: Option<String>,
 }
