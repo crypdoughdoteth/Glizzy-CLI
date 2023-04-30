@@ -28,5 +28,9 @@ Ensure that you are in the crate's root directory & in your terminal type `cargo
 
 Optional args include: "threshhold" & "chat" (slack channel) 
 
+Optional arg defaults: Threshhold = 300, Chat = general
+
+To monitor multiple addresses: pass `-a` before each address
+
 For more help use `goonz_monitor --help`
 
