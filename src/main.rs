@@ -32,9 +32,7 @@ async fn monitor(channel: String, mut threshhold: Vec<U256>, address: Vec<String
     let mut j: usize = 0;
 
     if threshhold.len() == 1 {
-        for _ in 0..(address.len() - threshhold.len()) - 1 {
-            threshhold.push(threshhold[0]);
-        }
+        threshhold.resize(address.len(), threshhold[0]);
     } else if threshhold.len() != address.len() {
         bail!("Input length mismatch");
     }
@@ -65,6 +63,8 @@ async fn monitor(channel: String, mut threshhold: Vec<U256>, address: Vec<String
     }
 }
 
+const DEFAULT_THRESHHOLD: &str = "300";
+
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Cli {
@@ -89,7 +89,7 @@ async fn main() -> Result<()> {
             .map(move |x: &String| parse_ether(x).unwrap())
             .collect()
     } else {
-        vec![parse_ether("300".to_string())?]
+        vec![parse_ether(DEFAULT_THRESHHOLD.to_string())?]
     };
     monitor(
         format!("#{}", cli.chat.unwrap_or("general".to_owned())),
