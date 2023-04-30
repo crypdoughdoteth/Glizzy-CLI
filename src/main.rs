@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{bail, Result};
 use clap::Parser;
 use dotenv::dotenv;
 use ethers::{
@@ -23,18 +23,27 @@ async fn get_bal(addy: &Vec<String>) -> Result<Vec<U256>> {
     Ok(res)
 }
 
-async fn monitor(channel: String, threshhold: U256, address: Vec<String>) -> Result<()> {
+async fn monitor(channel: String, mut threshhold: Vec<U256>, address: Vec<String>) -> Result<()> {
     let client = SlackClient::new(SlackClientHyperConnector::new());
     let token_value: SlackApiTokenValue =
         slack_morphism::SlackApiTokenValue(std::env::var("SLACK_BOT_TOKEN")?);
     let token: SlackApiToken = SlackApiToken::new(token_value);
     let session = client.open_session(&token);
     let mut j: usize = 0;
+
+    if threshhold.len() == 1 {
+        for _ in 0..(address.len() - threshhold.len()) - 1 {
+            threshhold.push(threshhold[0]);
+        }
+    } else if threshhold.len() != address.len() {
+        bail!("Input length mismatch");
+    }
+
     loop {
         match get_bal(&address).await {
             Ok(balances) => {
                 for i in balances.iter() {
-                    if *i <= threshhold {
+                    if *i <= threshhold[j] {
                         let post_chat_req = SlackApiChatPostMessageRequest::new(
                             channel.to_owned().into(),
                             SlackMessageContent::new().with_text(format!(
@@ -67,16 +76,24 @@ struct Cli {
     chat: Option<String>,
     /// Threshhold (in Ether) for when bot will notify chat
     #[arg(short, long)]
-    threshhold: Option<String>,
+    threshhold: Option<Vec<String>>,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenv()?;
     let cli = Cli::parse();
+
+    let val: Vec<U256> = if let Some(x) = cli.threshhold {
+        x.iter()
+            .map(move |x: &String| parse_ether(x).unwrap())
+            .collect()
+    } else {
+        vec![parse_ether("300".to_string())?]
+    };
     monitor(
         format!("#{}", cli.chat.unwrap_or("general".to_owned())),
-        parse_ether(cli.threshhold.unwrap_or(parse_ether("300")?.to_string()))?,
+        val,
         cli.address,
     )
     .await?;
