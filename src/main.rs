@@ -3,7 +3,7 @@ use clap::Parser;
 use dotenv::dotenv;
 use ethers::{
     providers::{Http, Middleware, Provider},
-    types::{Address, U256},
+    types::{Address, U256}, utils::parse_ether,
 };
 use slack_morphism::{
     prelude::{SlackApiChatPostMessageRequest, SlackClientHyperConnector},
@@ -19,11 +19,11 @@ async fn get_bal(addy: &str) -> Result<U256> {
     Ok(provider.get_balance(addy, None).await?)
 }
 
-async fn monitor(channel: String, threshhold: u128, address: String) -> Result<()> {
+async fn monitor(channel: String, threshhold: U256, address: String) -> Result<()> {
     loop {
         match get_bal(&address).await {
             Ok(x) => {
-                if x <= threshhold.into() {
+                if x <= threshhold {
                     let client = SlackClient::new(SlackClientHyperConnector::new());
                     let token_value: SlackApiTokenValue =
                         slack_morphism::SlackApiTokenValue(std::env::var("SLACK_BOT_TOKEN")?);
@@ -48,6 +48,8 @@ async fn monitor(channel: String, threshhold: u128, address: String) -> Result<(
     }
 }
 
+
+
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Cli {
@@ -59,7 +61,7 @@ struct Cli {
     chat: Option<String>,
     /// Threshhold (in WEI) for when bot will notify chat
     #[arg(short, long)]
-    threshhold: Option<u128>,
+    threshhold: Option<String>,
 }
 
 #[tokio::main]
@@ -68,7 +70,7 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
     monitor(
         format!("#{}", cli.chat.unwrap_or("general".to_owned())),
-        cli.threshhold.unwrap_or(300000000000000000000u128),
+        parse_ether(cli.threshhold.unwrap_or(parse_ether("300")?.to_string()))?,
         cli.address,
     )
     .await?;
