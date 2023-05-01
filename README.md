@@ -1,5 +1,6 @@
-# Goonz-Relay-Balance-Monitor
-Monitors the Cryptoon Goonz relayer and notifies slack when the balance of the EOA is too low to pay gas fees for users.
+# Glizzy-CLI
+
+Monitors an Ethereum account and notifies slack when the balance of the EOA is too low to pay gas fees for users.
 
 ## Installation 
 
