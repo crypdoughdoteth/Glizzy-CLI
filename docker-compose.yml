@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  glizzy:
+    image: glizzy
+    stdin_open: true
+    tty: true
+    command: ["glizzy", "-a", "0x940ACd9375b46EC2FA7C0E8aAd9D7241fb01e205"]
