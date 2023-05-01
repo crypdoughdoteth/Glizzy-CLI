@@ -1,9 +1,9 @@
 [package]
-name = "goonz_monitor"
+name = "glizzy"
 version = "0.1.0"
 edition = "2021"
 authors = ["Crypdough.eth"]
-description = "Monitors the Cryptoon Goonz relayer and notifies slack when the balance of the EOA is too low to pay gas fees for users."
+description = "Monitors an Ethereum account and notifies slack when the balance of the EOA is too low to pay gas fees for users."
 license = "MIT/Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
