@@ -10,7 +10,7 @@ Monitors an Ethereum account and notifies slack when the balance of the EOA is t
 
 ### 1. Clone this repository 
 
-  `git clone https://github.com/crypdoughdoteth/Goonz-Relay-Balance-Monitor/`
+  `git clone https://github.com/crypdoughdoteth/Glizzy-CLI/`
 
 ### 2. Create .env file with the following keys:
 
