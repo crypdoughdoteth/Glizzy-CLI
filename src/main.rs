@@ -23,16 +23,16 @@ async fn get_bal(addy: &Vec<String>) -> Result<Vec<U256>> {
     Ok(res)
 }
 
-async fn monitor(channel: String, mut threshhold: Vec<U256>, address: Vec<String>) -> Result<()> {
+async fn monitor(channel: String, mut threshold: Vec<U256>, address: Vec<String>) -> Result<()> {
     let client = SlackClient::new(SlackClientHyperConnector::new());
     let token_value: SlackApiTokenValue =
         slack_morphism::SlackApiTokenValue(std::env::var("SLACK_BOT_TOKEN")?);
     let token: SlackApiToken = SlackApiToken::new(token_value);
     let session = client.open_session(&token);
 
-    if threshhold.len() == 1 {
-        threshhold.resize(address.len(), threshhold[0]);
-    } else if threshhold.len() != address.len() {
+    if threshold.len() == 1 {
+        threshold.resize(address.len(), threshold[0]);
+    } else if threshold.len() != address.len() {
         bail!("Input length mismatch");
     }
     let mut alerted: bool = false;
@@ -40,8 +40,8 @@ async fn monitor(channel: String, mut threshhold: Vec<U256>, address: Vec<String
         match get_bal(&address).await {
             Ok(balances) => {
                 for i in 0..balances.len() {
-                    if balances[i] <= threshhold[i] && alerted == false {
-                            let post_chat_req = SlackApiChatPostMessageRequest::new(
+                    if balances[i] <= threshold[i] && alerted == false {
+                        let post_chat_req = SlackApiChatPostMessageRequest::new(
                             channel.to_owned().into(),
                             SlackMessageContent::new().with_text(format!(
                                 "Your balance at {:?} is running low: {}!\n",
@@ -51,7 +51,6 @@ async fn monitor(channel: String, mut threshhold: Vec<U256>, address: Vec<String
                         alerted = true;
                         let post_chat_resp = session.chat_post_message(&post_chat_req).await?;
                         println!("{:?}\n", post_chat_resp);
-                    
                     } else {
                         alerted = false;
                         println!("Balance is Sufficient at {:?}: {}\n", &address[i], i);
@@ -64,7 +63,7 @@ async fn monitor(channel: String, mut threshhold: Vec<U256>, address: Vec<String
     }
 }
 
-const DEFAULT_THRESHHOLD: &str = "300";
+const DEFAULT_THRESHOLD: &str = "300";
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -75,9 +74,9 @@ struct Cli {
     /// Chat room for slack bot to post in
     #[arg(short, long)]
     chat: Option<String>,
-    /// Threshhold (in Ether) for when bot will notify chat
+    /// Threshold (in Ether) for when bot will notify chat
     #[arg(short, long)]
-    threshhold: Option<Vec<String>>,
+    threshold: Option<Vec<String>>,
 }
 
 #[tokio::main]
@@ -85,12 +84,12 @@ async fn main() -> Result<()> {
     dotenv()?;
     let cli = Cli::parse();
 
-    let val: Vec<U256> = if let Some(x) = cli.threshhold {
+    let val: Vec<U256> = if let Some(x) = cli.threshold {
         x.iter()
             .map(move |x: &String| parse_ether(x).unwrap())
             .collect()
     } else {
-        vec![parse_ether(DEFAULT_THRESHHOLD.to_string())?]
+        vec![parse_ether(DEFAULT_THRESHOLD.to_string())?]
     };
     monitor(
         format!("#{}", cli.chat.unwrap_or("general".to_owned())),
