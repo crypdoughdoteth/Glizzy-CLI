@@ -1,6 +1,6 @@
 # Glizzy-CLI
 
-Monitors an Ethereum account and notifies slack when the balance of the EOA is too low to pay gas fees for users.
+Monitors an Ethereum account and notifies slack when the balance of an Ethereum account balance is too low.
 
 ## Installation 
 
@@ -34,3 +34,16 @@ Optional arg defaults: Threshhold = 300, Chat = general
 To monitor multiple: _pass `-a` before each address, `-t` before each threshhold value_. To set the threshhold to be the _same value for each address_, pass *only one* value using the `-t` flag. 
 
 For more help use `goonz_monitor --help`
+
+## Docker 
+
+In the docker-compose file, enter your command with flags/values seperated accordingly:
+
+command: ["glizzy", "-a", "0xAddressHere"]
+
+`docker build -t glizzy .`
+
+`docker-compose up`
+
+
+
