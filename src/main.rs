@@ -35,26 +35,28 @@ async fn monitor(channel: String, mut threshhold: Vec<U256>, address: Vec<String
     } else if threshhold.len() != address.len() {
         bail!("Input length mismatch");
     }
-
+    let mut alerted: bool = false;
     loop {
         match get_bal(&address).await {
             Ok(balances) => {
                 for i in 0..balances.len() {
-                    if balances[i] <= threshhold[i] {
-                        let post_chat_req = SlackApiChatPostMessageRequest::new(
+                    if balances[i] <= threshhold[i] && alerted == false {
+                            let post_chat_req = SlackApiChatPostMessageRequest::new(
                             channel.to_owned().into(),
                             SlackMessageContent::new().with_text(format!(
                                 "Your balance at {:?} is running low: {}!\n",
                                 &address[i], i
                             )),
                         );
+                        alerted = true;
                         let post_chat_resp = session.chat_post_message(&post_chat_req).await?;
                         println!("{:?}\n", post_chat_resp);
+                    
                     } else {
+                        alerted = false;
                         println!("Balance is Sufficient at {:?}: {}\n", &address[i], i);
                     }
                 }
-
                 sleep(Duration::from_secs(900)).await;
             }
             Err(e) => return Err(e),
