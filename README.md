@@ -27,11 +27,11 @@ Ensure that you are in the crate's root directory & in your terminal type `cargo
 
 `goonz_monitor --address <ADDRESS>`
 
-Optional args include: "threshhold" (value) & "chat" (slack channel) 
+Optional args include: "threshold" (value) & "chat" (slack channel) 
 
-Optional arg defaults: Threshhold = 300, Chat = general
+Optional arg defaults: Threshold = 300, Chat = general
 
-To monitor multiple: _pass `-a` before each address, `-t` before each threshhold value_. To set the threshhold to be the _same value for each address_, pass *only one* value using the `-t` flag. 
+To monitor multiple: _pass `-a` before each address, `-t` before each threshold value_. To set the threshold to be the _same value for each address_, pass *only one* value using the `-t` flag. 
 
 For more help use `goonz_monitor --help`
 
